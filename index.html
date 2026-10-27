@@ -1,0 +1,643 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="TRACE compares user-provided documents and source code using Rabin-Karp string matching and Longest Common Subsequence analysis.">
+  <meta name="theme-color" content="#f4f1e8">
+  <title>TRACE | Document &amp; Code Analysis</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#dashboard" aria-label="TRACE dashboard">
+        <span class="brand-mark">T</span>
+        <span>TRACE<span class="brand-period">.</span></span>
+      </a>
+
+      <div class="sidebar-label">WORKSPACE</div>
+      <nav class="navigation" aria-label="Main navigation">
+        <a class="nav-link active" href="#dashboard" data-page="dashboard">
+          <span class="nav-icon">▦</span> Overview
+        </a>
+        <a class="nav-link" href="#documents" data-page="documents">
+          <span class="nav-icon">▤</span> Document analysis
+        </a>
+        <a class="nav-link" href="#code" data-page="code">
+          <span class="nav-icon">{ }</span> Code comparison
+        </a>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="sidebar-label">PROJECT</div>
+        <a class="nav-link" href="#method" data-page="method">Methodology</a>
+        <a class="nav-link" href="#about" data-page="about">About TRACE</a>
+
+        <button class="theme-toggle" id="themeToggle" type="button">
+          <span id="themeIcon">◐</span>
+          <span id="themeLabel">Switch to dark mode</span>
+        </button>
+
+        <div class="sidebar-version">ANALYSIS WORKSPACE</div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="breadcrumb">
+          Workspace <span>/</span>
+          <strong id="currentSection">Overview</strong>
+        </div>
+        <div class="topbar-status">
+          <span class="status-dot"></span> TRACE WORKSPACE
+        </div>
+      </header>
+
+      <!-- OVERVIEW -->
+      <section class="page" id="dashboard">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">DOCUMENT INTELLIGENCE / 01</p>
+            <h1>Similarity analysis</h1>
+            <p class="page-description">
+              Compare documents and source code provided by you.
+              Inspect matching content and understand how similarity is calculated.
+            </p>
+          </div>
+        </div>
+
+        <div class="notice">
+          <span class="notice-mark">i</span>
+          <p>
+            TRACE compares user-provided documents and source-code files.
+            Review the overall score alongside the Rabin-Karp score, LCS score,
+            and matching content. Similarity alone does not establish plagiarism.
+          </p>
+        </div>
+
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">START AN ANALYSIS</p>
+            <h2>Choose your workflow</h2>
+          </div>
+        </div>
+
+        <div class="workflow-grid">
+          <a class="workflow-card" href="#documents" data-page="documents">
+            <div class="card-topline">
+              <span class="card-index">01 / DOCS</span>
+              <span class="card-arrow">↗</span>
+            </div>
+            <div class="workflow-symbol document-symbol">D</div>
+            <h3>Document analysis</h3>
+            <p>
+              Compare uploaded documents or paste text directly to identify
+              matching passages.
+            </p>
+            <span class="text-action">
+              Open document analysis <span>→</span>
+            </span>
+          </a>
+
+          <a class="workflow-card" href="#code" data-page="code">
+            <div class="card-topline">
+              <span class="card-index">02 / CODE</span>
+              <span class="card-arrow">↗</span>
+            </div>
+            <div class="workflow-symbol code-symbol">{ }</div>
+            <h3>Code comparison</h3>
+            <p>
+              Compare uploaded source files or paste code directly to inspect
+              matching sequences and differences.
+            </p>
+            <span class="text-action">
+              Open code comparison <span>→</span>
+            </span>
+          </a>
+        </div>
+
+        <section class="method-strip">
+          <div>
+            <p class="eyebrow">DESIGN PRINCIPLE</p>
+            <h2>Evidence before conclusions.</h2>
+          </div>
+          <p>
+            Similarity scores indicate overlapping content. They do not,
+            by themselves, establish plagiarism or intent.
+          </p>
+        </section>
+
+        <footer class="page-footer">
+          <span>TRACE / DOCUMENT &amp; CODE ANALYSIS</span>
+          <span>Built for user-provided content</span>
+        </footer>
+      </section>
+
+      <!-- DOCUMENT ANALYSIS -->
+      <section class="page secondary-page" id="documents" hidden>
+        <p class="eyebrow">DOCUMENT INTELLIGENCE / 02</p>
+        <h1>Document analysis</h1>
+        <p class="page-description">
+          Compare two documents by uploading files or pasting their text.
+        </p>
+
+        <div class="upload-panel">
+          <label class="field-label">CHOOSE INPUT METHOD</label>
+
+          <div class="input-mode-selector" role="group" aria-label="Document input method">
+            <button
+              type="button"
+              class="input-mode-button active"
+              id="documentUploadMode"
+              aria-pressed="true"
+            >
+              Upload files
+            </button>
+            <button
+              type="button"
+              class="input-mode-button"
+              id="documentTextMode"
+              aria-pressed="false"
+            >
+              Paste text
+            </button>
+          </div>
+
+          <!-- Document file input -->
+          <div id="documentUploadPanel">
+            <label for="documentFiles" class="field-label">
+              DOCUMENT FILES
+            </label>
+
+            <label
+              for="documentFiles"
+              class="button-primary add-documents-button"
+            >
+              + Add documents
+            </label>
+
+            <input
+              id="documentFiles"
+              type="file"
+              accept=".pdf,.docx,.txt"
+              multiple
+              class="visually-hidden-file-input"
+            >
+
+            <div
+              id="selectedDocumentNames"
+              class="selected-document-names"
+            ></div>
+
+            <p class="field-help">
+              Select exactly two PDF, DOCX or TXT files.
+              Maximum 10 MB per file.
+            </p>
+          </div>
+
+          <!-- Document text input -->
+          <div id="documentTextPanel" hidden>
+            <div class="pasted-input-grid">
+              <div class="pasted-input-field">
+                <label for="documentTextA" class="field-label">
+                  DOCUMENT A
+                </label>
+                <textarea
+                  id="documentTextA"
+                  class="comparison-textarea"
+                  rows="10"
+                  maxlength="200000"
+                  placeholder="Paste the first document here..."
+                  spellcheck="false"
+                ></textarea>
+                <div class="textarea-meta">
+                  <span>Document A</span>
+                  <span id="documentTextACount">0 / 200000</span>
+                </div>
+              </div>
+
+              <div class="pasted-input-field">
+                <label for="documentTextB" class="field-label">
+                  DOCUMENT B
+                </label>
+                <textarea
+                  id="documentTextB"
+                  class="comparison-textarea"
+                  rows="10"
+                  maxlength="200000"
+                  placeholder="Paste the second document here..."
+                  spellcheck="false"
+                ></textarea>
+                <div class="textarea-meta">
+                  <span>Document B</span>
+                  <span id="documentTextBCount">0 / 200000</span>
+                </div>
+              </div>
+            </div>
+
+            <p class="field-help">
+              Paste the two texts you want to compare.
+              Each input supports up to 200,000 characters.
+            </p>
+          </div>
+
+          <button
+            class="button-primary"
+            id="documentPrepare"
+            type="button"
+          >
+            Compare documents
+          </button>
+
+          <p class="feedback" id="documentFeedback" role="status">
+            Select two documents or paste two texts to begin.
+          </p>
+
+          <div id="documentResults" class="document-results" hidden>
+            <div class="results-heading">
+              <div>
+                <p class="eyebrow">ANALYSIS COMPLETE</p>
+                <h2>Comparison results</h2>
+              </div>
+              <span class="results-status">Completed</span>
+            </div>
+
+            <div class="similarity-card">
+              <p class="result-label">OVERALL TEXT SIMILARITY</p>
+
+              <div class="similarity-score-row">
+                <strong id="documentScore">-</strong>
+                <span id="documentLevel" class="similarity-level">
+                  Awaiting result
+                </span>
+              </div>
+
+              <div
+                id="documentProgress"
+                class="similarity-progress"
+                role="progressbar"
+                aria-label="Overall text similarity"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow="0"
+              >
+                <div
+                  id="documentProgressFill"
+                  class="similarity-progress-fill"
+                ></div>
+              </div>
+
+              <p id="documentMethod" class="result-method"></p>
+            </div>
+
+            <div class="matching-section">
+              <div class="matching-heading">
+                <h3>Matching passages</h3>
+                <span id="documentMatchCount" class="match-count"></span>
+              </div>
+
+              <ol id="documentMatches" class="matching-list"></ol>
+            </div>
+
+            <div
+              id="documentLcsResults"
+              class="lcs-results"
+              hidden
+            ></div>
+
+            <p class="results-disclaimer">
+              <strong>Important:</strong> Similarity indicates textual overlap.
+              It does not prove plagiarism or establish intent. Review the
+              matching passages and individual algorithm scores before
+              drawing conclusions.
+            </p>
+          </div>
+        </div>
+
+        <footer class="page-footer">
+          <span>TRACE / DOCUMENT ANALYSIS</span>
+          <span>User-provided content only</span>
+        </footer>
+      </section>
+
+      <!-- CODE COMPARISON -->
+      <section class="page secondary-page" id="code" hidden>
+        <p class="eyebrow">SOURCE CODE / 03</p>
+        <h1>Code comparison</h1>
+        <p class="page-description">
+          Compare two source-code files or paste two code snippets to inspect
+          similarity and matching sequences.
+        </p>
+
+        <div class="upload-panel">
+          <label class="field-label">CHOOSE INPUT METHOD</label>
+
+          <div class="input-mode-selector" role="group" aria-label="Code input method">
+            <button
+              type="button"
+              class="input-mode-button active"
+              id="codeUploadMode"
+              aria-pressed="true"
+            >
+              Upload files
+            </button>
+            <button
+              type="button"
+              class="input-mode-button"
+              id="codeTextMode"
+              aria-pressed="false"
+            >
+              Paste code
+            </button>
+          </div>
+
+          <!-- Code file input -->
+          <div id="codeUploadPanel">
+            <label for="codeFiles" class="field-label">
+              SOURCE CODE FILES
+            </label>
+
+            <label
+              for="codeFiles"
+              class="button-primary add-documents-button"
+            >
+              + Add code files
+            </label>
+
+            <input
+              id="codeFiles"
+              type="file"
+              accept=".py,.java,.c,.cpp,.h,.hpp,.js,.ts,.php,.cs,.go,.rs,.txt"
+              multiple
+              class="visually-hidden-file-input"
+            >
+
+            <div
+              id="selectedCodeNames"
+              class="selected-document-names"
+            ></div>
+
+            <p class="field-help">
+              Select exactly two source-code files. Supported formats include
+              Python, Java, C, C++, JavaScript, TypeScript, PHP, C#, Go and Rust.
+              Maximum 10 MB per file.
+            </p>
+          </div>
+
+          <!-- Code text input -->
+          <div id="codeTextPanel" hidden>
+            <div class="pasted-input-grid">
+              <div class="pasted-input-field">
+                <label for="codeTextA" class="field-label">
+                  CODE A
+                </label>
+                <textarea
+                  id="codeTextA"
+                  class="comparison-textarea code-textarea"
+                  rows="12"
+                  maxlength="200000"
+                  placeholder="Paste the first code snippet here..."
+                  spellcheck="false"
+                  autocapitalize="off"
+                  autocomplete="off"
+                ></textarea>
+                <div class="textarea-meta">
+                  <span>Code A</span>
+                  <span id="codeTextACount">0 / 200000</span>
+                </div>
+              </div>
+
+              <div class="pasted-input-field">
+                <label for="codeTextB" class="field-label">
+                  CODE B
+                </label>
+                <textarea
+                  id="codeTextB"
+                  class="comparison-textarea code-textarea"
+                  rows="12"
+                  maxlength="200000"
+                  placeholder="Paste the second code snippet here..."
+                  spellcheck="false"
+                  autocapitalize="off"
+                  autocomplete="off"
+                ></textarea>
+                <div class="textarea-meta">
+                  <span>Code B</span>
+                  <span id="codeTextBCount">0 / 200000</span>
+                </div>
+              </div>
+            </div>
+
+            <p class="field-help">
+              Paste source code into both fields. Each input supports
+              up to 200,000 characters.
+            </p>
+          </div>
+
+          <button
+            class="button-primary"
+            id="codePrepare"
+            type="button"
+          >
+            Compare code
+          </button>
+
+          <p class="feedback" id="codeFeedback" role="status">
+            Select two code files or paste two code snippets to begin.
+          </p>
+
+          <div id="codeResults" class="document-results" hidden>
+            <div class="results-heading">
+              <div>
+                <p class="eyebrow">ANALYSIS COMPLETE</p>
+                <h2>Code comparison results</h2>
+              </div>
+              <span class="results-status">Completed</span>
+            </div>
+
+            <div class="similarity-card">
+              <p class="result-label">OVERALL CODE SIMILARITY</p>
+
+              <div class="similarity-score-row">
+                <strong id="codeScore">-</strong>
+                <span id="codeLevel" class="similarity-level">
+                  Awaiting result
+                </span>
+              </div>
+
+              <div
+                id="codeProgress"
+                class="similarity-progress"
+                role="progressbar"
+                aria-label="Overall code similarity"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow="0"
+              >
+                <div
+                  id="codeProgressFill"
+                  class="similarity-progress-fill"
+                ></div>
+              </div>
+
+              <p id="codeMethod" class="result-method"></p>
+            </div>
+
+            <div class="matching-section">
+              <div class="matching-heading">
+                <h3>Matching code sequences</h3>
+                <span id="codeMatchCount" class="match-count"></span>
+              </div>
+
+              <ol id="codeMatches" class="matching-list"></ol>
+            </div>
+
+            <div
+              id="codeLcsResults"
+              class="lcs-results"
+              hidden
+            ></div>
+
+            <p class="results-disclaimer">
+              <strong>Important:</strong> Similar code does not automatically
+              prove plagiarism. Common algorithms, required templates and
+              standard programming patterns may produce similarities.
+              Review matching code, algorithm scores and differences
+              before drawing conclusions.
+            </p>
+          </div>
+        </div>
+
+        <footer class="page-footer">
+          <span>TRACE / CODE COMPARISON</span>
+          <span>User-provided content only</span>
+        </footer>
+      </section>
+
+      <!-- METHODOLOGY -->
+      <section class="page secondary-page" id="method" hidden>
+        <p class="eyebrow">TECHNICAL NOTES / 04</p>
+        <h1>Methodology</h1>
+        <p class="page-description">
+          TRACE presents multiple comparison measures and matching content
+          so users can inspect the evidence behind a result.
+        </p>
+
+        <div class="text-panel">
+          <h2>How TRACE works</h2>
+          <p>
+            TRACE compares two user-provided inputs using text analysis or
+            source-code analysis. The implemented methods are Rabin-Karp
+            string matching and Longest Common Subsequence (LCS) using
+            dynamic programming.
+          </p>
+
+          <h2>1. Document comparison</h2>
+          <p>
+            TRACE extracts text from supported PDF, DOCX and TXT files.
+            Users can also paste text directly. The extracted or pasted text
+            is tokenized for comparison. Matching sequences and LCS results
+            help users inspect overlapping content.
+          </p>
+
+          <h2>2. Source-code comparison</h2>
+          <p>
+            TRACE compares uploaded source files or pasted code snippets.
+            Tokenization and the comparison behavior depend on the backend
+            implementation. Results may include matching code sequences,
+            LCS information and line-by-line differences.
+          </p>
+
+          <h2>3. Rabin-Karp string matching</h2>
+          <p>
+            Rabin-Karp uses hashing to identify candidate matches between
+            sequences. Candidate matches can then be checked against actual
+            tokens. It is useful for finding exact contiguous sequences.
+          </p>
+
+          <h2>4. Longest Common Subsequence</h2>
+          <p>
+            The Longest Common Subsequence is the longest sequence of tokens
+            that occurs in both inputs in the same relative order. Matching
+            tokens do not need to be adjacent. Dynamic programming computes
+            the result by solving smaller subsequence problems.
+          </p>
+          <p>
+            LCS complements Rabin-Karp: Rabin-Karp identifies contiguous
+            matches, while LCS can identify common tokens even when other
+            tokens occur between them.
+          </p>
+
+          <h2>5. Understanding the scores</h2>
+          <p>
+            The Rabin-Karp score represents matching-token coverage according
+            to the implemented method. The LCS score represents similarity
+            according to the backend's LCS formula. Overall similarity uses
+            the combination implemented in the backend. These are
+            project-specific measures, not standardized plagiarism scores.
+          </p>
+          <p>
+            If LCS is unavailable because of backend limits, it should be
+            reported as unavailable rather than treated as zero.
+          </p>
+
+          <h2>6. Scope and limitations</h2>
+          <p>
+            TRACE compares only content supplied by the user. It does not
+            search the internet or external plagiarism databases. Results
+            depend on text extraction, tokenization, algorithms and backend
+            limits. Similarity alone does not prove plagiarism.
+          </p>
+        </div>
+
+        <footer class="page-footer">
+          <span>TRACE / METHODOLOGY</span>
+          <span>Rabin-Karp and LCS</span>
+        </footer>
+      </section>
+
+      <!-- ABOUT TRACE -->
+      <section class="page secondary-page" id="about" hidden>
+        <p class="eyebrow">PROJECT NOTES / 06</p>
+        <h1>About TRACE</h1>
+        <p class="page-description">
+          A document and source-code similarity analyser built to make
+          comparisons easier to inspect and understand.
+        </p>
+
+        <div class="text-panel">
+          <h2>Purpose</h2>
+          <p>
+            TRACE helps users compare two documents or two source-code inputs,
+            review overlapping content and inspect differences in context.
+          </p>
+
+          <h2>Designed around evidence</h2>
+          <p>
+            Instead of treating a similarity percentage as a final judgement,
+            TRACE presents matching passages or code sequences to help users
+            make an informed review.
+          </p>
+
+          <h2>Scope and limitations</h2>
+          <p>
+            TRACE compares user-provided content and does not search external
+            plagiarism databases. Results depend on supported file formats
+            and implemented comparison methods. Similarity alone does not
+            prove plagiarism.
+          </p>
+        </div>
+
+        <footer class="page-footer">
+          <span>TRACE / ABOUT</span>
+          <span>Document &amp; code analysis</span>
+        </footer>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
